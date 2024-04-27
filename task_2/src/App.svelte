@@ -1,7 +1,7 @@
 <script lang="ts">
-   // import type { Data, Rates } from "./types/types";
+   import type { Data } from "./types/types";
 
-   let rates: any;
+   let rates: Map<string, number>;
 
    let first_code: string = "USD";
    let first_base_value: number;
@@ -12,21 +12,26 @@
    let const_at_change: number;
 
    // Асинхронная функция для получания данных из сервера
-   const getDate = async () => {
-      const res = await fetch("http://localhost:3000/data");
-      const json = await res.json();
+   const getDate = async (): Promise<Data> => {
+      const response: Response = await fetch("http://localhost:3000/data");
 
-      rates = new Map(Object.entries(json.rates));
-      first_base_value = rates.get(first_code || json.base_code);
+      if (!response.ok) throw new Error(response.statusText);
+
+      const data: Data = await response.json();
+
+      rates = new Map(Object.entries(data.rates));
+      first_base_value = rates.get(first_code || data.base_code)!;
       first_change_value = first_base_value;
       const_at_change = first_change_value;
 
-      second_base_value = rates.get(second_code || "RUB");
+      second_base_value = rates.get(second_code || "RUB")!;
       second_change_value = second_base_value;
+      console.log(rates);
 
-      return json;
+      return data;
    };
-   const data = getDate();
+
+   const awaitData: Promise<Data> = getDate();
 
    // Функция для переключении первой волюты
    const firstSwitcher = (
@@ -35,7 +40,8 @@
       }
    ) => {
       first_code = event.currentTarget.value;
-      rates && (first_base_value = rates.get(first_code));
+
+      rates && (first_base_value = rates.get(first_code) as number);
       second_change_value =
          (const_at_change * second_base_value) / first_base_value;
    };
@@ -58,7 +64,7 @@
       }
    ) => {
       second_code = event.currentTarget.value;
-      rates && (second_base_value = rates.get(second_code));
+      rates && (second_base_value = rates.get(second_code) as number);
       second_change_value =
          (const_at_change * second_base_value) / first_base_value;
    };
@@ -89,7 +95,7 @@
 <main>
    <!-- Отображаем загрузку пока ждём ответа на запрос получения
       данных от сервера -->
-   {#await data}
+   {#await awaitData}
       <p>loading...</p>
       <!-- Если успешно получили даных то отображаем -->
    {:then data}
@@ -133,4 +139,11 @@
 </main>
 
 <style>
+   /* Убираем стрелки/спиннеры полей */
+   /* Chrome, Safari, Edge, Opera */
+   input::-webkit-outer-spin-button,
+   input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+   }
 </style>

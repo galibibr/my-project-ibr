@@ -1,4 +1,4 @@
-export interface Rates {
+interface Rates {
    USD: string;
    AED: string;
    AFN: string;
