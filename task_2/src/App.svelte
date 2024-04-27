@@ -10,6 +10,7 @@
    let second_base_value: number;
    let second_change_value: number;
    let const_at_change: number;
+   let time_last_update_utc: string;
 
    // Асинхронная функция для получания данных из сервера
    const getDate = async (): Promise<Data> => {
@@ -18,6 +19,7 @@
       if (!response.ok) throw new Error(response.statusText);
 
       const data: Data = await response.json();
+      time_last_update_utc = new Date(data.time_last_update_utc).toUTCString();
 
       rates = new Map(Object.entries(data.rates));
       first_base_value = rates.get(first_code || data.base_code)!;
@@ -95,7 +97,9 @@
    <!-- Отображаем загрузку пока ждём ответа на запрос получения
       данных от сервера -->
    {#await awaitData}
-      <p>loading...</p>
+      <div class="loading-container">
+         <p>loading...</p>
+      </div>
       <!-- Если успешно получили даных то отображаем -->
    {:then data}
       <h2>Конвертер валют</h2>
@@ -153,6 +157,7 @@
             </select>
          </div>
       </section>
+      <p class="time-last-update">Данные за {time_last_update_utc}</p>
 
       <!-- Если произошла ошибка при получения данных, то отображаем 
       сообщения об ошибке -->
@@ -173,18 +178,17 @@
    select {
       outline: none;
       padding-left: 15px;
+      font-size: 16px;
    }
    input {
       height: 40px;
    }
    select {
       display: inline-block;
-      font: inherit;
       line-height: 1.5em;
       padding-left: 15px;
       padding-right: 30px;
       border-left: 1px solid;
-      box-sizing: border-box;
       -webkit-appearance: none;
       -moz-appearance: none;
       background-image: linear-gradient(45deg, transparent 50%, gray 50%),
@@ -208,7 +212,7 @@
    .currency-panel {
       display: grid;
       grid-template-columns: 1fr auto;
-      padding: 40px 20px;
+      padding: 40px 20px 20px;
       gap: 15px;
    }
    .converter-input-container {
@@ -237,6 +241,10 @@
    .replace-btn:hover .arrow-icon {
       color: #08a652;
    }
+   .time-last-update {
+      text-align: center;
+      font-size: 13px;
+   }
    @media (min-width: 760px) {
       .currency-panel {
          grid-template-columns: 1fr auto 1fr;
@@ -250,5 +258,27 @@
          outline: none;
          background-color: transparent;
       }
+      input,
+      select {
+         font-size: 22px;
+      }
+      .time-last-update {
+         font-size: 16px;
+      }
+   }
+   
+   .loading-container {
+      background-color: #08a65221;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 100vh;
+      font-size: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
    }
 </style>
