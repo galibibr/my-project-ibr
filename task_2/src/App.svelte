@@ -3,10 +3,10 @@
 
    let rates: any;
 
-   let first_code: string = "";
+   let first_code: string = "USD";
    let first_base_value: number;
    let first_change_value: number;
-   let second_code: string = "";
+   let second_code: string = "RUB";
    let second_base_value: number;
    let second_change_value: number;
    let const_at_change: number;
@@ -26,7 +26,6 @@
 
       return json;
    };
-
    const data = getDate();
 
    // Функция для переключении первой волюты
@@ -35,7 +34,6 @@
          currentTarget: EventTarget & HTMLSelectElement;
       }
    ) => {
-      //
       first_code = event.currentTarget.value;
       rates && (first_base_value = rates.get(first_code));
       second_change_value =
@@ -75,6 +73,17 @@
       const_at_change = first_change_value;
       second_change_value = +event.currentTarget.value;
    };
+
+   // Функция для замены полей валют
+   const replaceCurrencies = () => {
+      [first_code, second_code] = [second_code, first_code];
+      [first_base_value, second_base_value] = [
+         second_base_value,
+         first_base_value,
+      ];
+      second_change_value =
+         (const_at_change * second_base_value) / first_base_value;
+   };
 </script>
 
 <main>
@@ -82,7 +91,7 @@
       данных от сервера -->
    {#await data}
       <p>loading...</p>
-   <!-- Если успешно получили даных то отображаем -->
+      <!-- Если успешно получили даных то отображаем -->
    {:then data}
       <div>
          <input
@@ -102,9 +111,11 @@
       <div>
          <input
             type="number"
-            value={Number.isInteger(second_change_value)
-               ? second_change_value
-               : +second_change_value.toFixed(2)}
+            value={first_change_value > -1
+               ? Number.isInteger(second_change_value)
+                  ? second_change_value
+                  : +second_change_value.toFixed(2)
+               : ""}
             on:input={handleInputSecond}
          />
          <select on:change={secondSwitcher} value={second_code || "RUB"}>
@@ -113,7 +124,8 @@
             {/each}
          </select>
       </div>
-   <!-- Если произошла ошибка при получения данных, то отображаем 
+      <button on:click={replaceCurrencies}>Change</button>
+      <!-- Если произошла ошибка при получения данных, то отображаем 
       сообщения об ошибке -->
    {:catch error}
       <p>{error.message}</p>
