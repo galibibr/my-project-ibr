@@ -14,11 +14,11 @@
 
    // Асинхронная функция для получания данных из сервера
    const getDate = async (): Promise<Data> => {
-      const response: Response = await fetch("http://localhost:3000/data");
+      const response: Response = await fetch(import.meta.env.VITE_API_URL);
 
       if (!response.ok) throw new Error(response.statusText);
 
-      const data: Data = await response.json();
+      const data: Data = await response.json();      
       time_last_update_utc = new Date(data.time_last_update_utc).toUTCString();
 
       rates = new Map(Object.entries(data.rates));
@@ -261,6 +261,10 @@
       input,
       select {
          font-size: 22px;
+         background-position:
+         calc(100% - 20px) calc(0.8em + 2px),
+         calc(100% - 16px) calc(0.8em + 2px),
+         calc(100% - 2.5em) 0.5em;
       }
       .time-last-update {
          font-size: 16px;
